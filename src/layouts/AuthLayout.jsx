@@ -7,7 +7,7 @@ export default function AuthLayout({ children }) {
     <div className="relative min-h-screen login-bg flex items-center justify-center p-4 overflow-hidden">
       {/* Dekoratif floating orbs */}
       <div
-        className="orb w-80 h-80 bg-violet-600"
+        className="orb w-80 h-80 bg-blue-600"
         style={{ top: '-10%', left: '-5%', animationDelay: '0s' }}
       />
       <div

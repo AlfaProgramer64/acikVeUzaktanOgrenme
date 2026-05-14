@@ -6,9 +6,9 @@ import { useAuth } from '../context/AuthContext';
 
 // ─── Demo hesap listesi ────────────────────────────────────────────────────────
 const DEMO_ACCOUNTS = [
-  { label: 'Öğrenci Girişi', email: 'ogrenci@demo.com', role: 'student', icon: '🚀', color: 'from-violet-600/30 to-pink-600/20', border: 'border-violet-500/40' },
-  { label: 'Öğretmen Girişi', email: 'ogretmen@demo.com', role: 'teacher', icon: '🎓', color: 'from-cyan-600/30 to-blue-600/20', border: 'border-cyan-500/40' },
-  { label: 'Admin Girişi', email: 'admin@demo.com', role: 'admin', icon: '⚙️', color: 'from-amber-600/30 to-orange-600/20', border: 'border-amber-500/40' },
+  { label: 'Öğrenci Girişi', email: 'ogrenci@demo.com', role: 'student', icon: '🚀', color: 'from-blue-50 to-blue-100', border: 'border-blue-200 text-blue-900' },
+  { label: 'Öğretmen Girişi', email: 'ogretmen@demo.com', role: 'teacher', icon: '🎓', color: 'from-cyan-50 to-cyan-100', border: 'border-cyan-200 text-cyan-900' },
+  { label: 'Admin Girişi', email: 'admin@demo.com', role: 'admin', icon: '⚙️', color: 'from-indigo-50 to-indigo-100', border: 'border-indigo-200 text-indigo-900' },
 ];
 
 export default function LoginPage() {
@@ -57,13 +57,13 @@ export default function LoginPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-pink-500 shadow-2xl shadow-violet-500/40 text-3xl mb-2 animate-float">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 shadow-2xl shadow-violet-500/40 text-3xl mb-2 animate-float">
             ⚡
           </div>
           <h1 className="font-display font-black text-3xl text-gradient">
             Kuvvet &amp; Hareket
           </h1>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-500 text-sm">
             Öğrenme yolculuğuna devam etmek için giriş yap!
           </p>
         </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border bg-gradient-to-b ${acc.color} ${acc.border} hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-50`}
               >
                 <span className="text-2xl">{acc.icon}</span>
-                <span className="text-xs font-bold text-white leading-tight text-center">{acc.label}</span>
+                <span className="text-xs font-bold text-slate-900 leading-tight text-center">{acc.label}</span>
               </button>
             ))}
           </div>
@@ -90,20 +90,20 @@ export default function LoginPage() {
 
         {/* Divider */}
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-white/10" />
+          <div className="flex-1 h-px bg-slate-200" />
           <span className="text-xs text-slate-500 font-medium">veya manuel giriş</span>
-          <div className="flex-1 h-px bg-white/10" />
+          <div className="flex-1 h-px bg-slate-200" />
         </div>
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {/* E-posta */}
           <div className="space-y-1.5">
-            <label htmlFor="login-email" className="text-sm font-semibold text-slate-300">
+            <label htmlFor="login-email" className="text-sm font-semibold text-slate-600">
               E-posta Adresi
             </label>
             <div className="relative">
-              <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 id="login-email"
                 type="email"
@@ -125,11 +125,11 @@ export default function LoginPage() {
 
           {/* Şifre */}
           <div className="space-y-1.5">
-            <label htmlFor="login-password" className="text-sm font-semibold text-slate-300">
+            <label htmlFor="login-password" className="text-sm font-semibold text-slate-600">
               Şifre
             </label>
             <div className="relative">
-              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
@@ -144,7 +144,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition-colors"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -190,7 +190,7 @@ export default function LoginPage() {
 
         {/* Hint */}
         <p className="text-center text-xs text-slate-500">
-          Demo şifresi: <span className="text-violet-400 font-bold">demo123</span>
+          Demo şifresi: <span className="text-blue-500 font-bold">demo123</span>
         </p>
       </div>
     </AuthLayout>

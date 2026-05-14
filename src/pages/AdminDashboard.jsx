@@ -4,7 +4,7 @@ import { Users, Server, ShieldCheck, Activity, Trash2, UserPlus } from 'lucide-r
 import Card from '../components/Card';
 
 const SYSTEM_STATS = [
-  { icon: Users,      label: 'Toplam Kullanıcı', value: '47',   color: 'text-violet-400', glow: 'purple' },
+  { icon: Users,      label: 'Toplam Kullanıcı', value: '47',   color: 'text-blue-500', glow: 'purple' },
   { icon: Server,     label: 'Aktif Oturum',     value: '12',   color: 'text-cyan-400',   glow: 'cyan'   },
   { icon: ShieldCheck,label: 'Güvenlik Puanı',   value: '98/100',color: 'text-emerald-400',glow: 'emerald'},
   { icon: Activity,   label: 'Sistem Yükü',      value: '%23',  color: 'text-amber-400',  glow: 'amber'  },
@@ -18,7 +18,7 @@ const USERS = [
 
 const ROLE_COLORS = {
   'Öğretmen': 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
-  'Öğrenci':  'text-violet-400 bg-violet-500/10 border-violet-500/30',
+  'Öğrenci':  'text-blue-500 bg-blue-500/10 border-blue-500/30',
   'Admin':    'text-amber-400 bg-amber-500/10 border-amber-500/30',
 };
 
@@ -30,13 +30,13 @@ export default function AdminDashboard() {
       <div className="space-y-6 max-w-5xl mx-auto">
 
         {/* Welcome Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-900/50 via-orange-900/30 to-red-900/20 border border-amber-500/20 p-6">
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl" />
-          <p className="text-slate-400 text-sm">Yönetici Paneli ⚙️</p>
-          <h2 className="font-display font-black text-2xl text-white mt-1">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 border border-amber-200 p-6">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-300/30 rounded-full blur-3xl" />
+          <p className="text-slate-500 text-sm">Yönetici Paneli ⚙️</p>
+          <h2 className="font-display font-black text-2xl text-slate-900 mt-1">
             Sistem Durumu: <span className="text-amber-400">Çevrimiçi ✅</span>
           </h2>
-          <p className="text-slate-400 text-sm mt-2">
+          <p className="text-slate-500 text-sm mt-2">
             Son güncelleme: {new Date().toLocaleTimeString('tr-TR')}
           </p>
           <button
@@ -53,7 +53,7 @@ export default function AdminDashboard() {
             <Card key={label} glow={glow} hover>
               <Icon size={22} className={color} />
               <p className={`font-display font-black text-2xl mt-2 ${color}`}>{value}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{label}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{label}</p>
             </Card>
           ))}
         </div>
@@ -61,18 +61,18 @@ export default function AdminDashboard() {
         {/* User Management Table */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display font-bold text-lg text-white">Kullanıcı Yönetimi</h3>
+            <h3 className="font-display font-bold text-lg text-slate-900">Kullanıcı Yönetimi</h3>
             <span className="text-xs text-slate-500">{USERS.length} kullanıcı</span>
           </div>
           <div className="space-y-2">
             {USERS.map((u) => (
               <div
                 key={u.email}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 transition-colors group"
               >
                 <span className="text-2xl">{u.avatar}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white">{u.name}</p>
+                  <p className="text-sm font-semibold text-slate-900">{u.name}</p>
                   <p className="text-xs text-slate-500">{u.email}</p>
                 </div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${ROLE_COLORS[u.role] || ''}`}>

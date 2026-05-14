@@ -13,8 +13,8 @@ function ComingSoon({ title }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 text-center">
       <div className="text-6xl animate-float">🚧</div>
-      <h2 className="font-display font-black text-2xl text-white">{title}</h2>
-      <p className="text-slate-400 text-sm">Bu sayfa yakında gelecek!</p>
+      <h2 className="font-display font-black text-2xl text-slate-900">{title}</h2>
+      <p className="text-slate-500 text-sm">Bu sayfa yakında gelecek!</p>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import Card from '../components/Card';
 
 const STATS = [
   { icon: Users,     label: 'Toplam Öğrenci',  value: '32',  color: 'text-cyan-400',    glow: 'cyan'    },
-  { icon: BookOpen,  label: 'Aktif Ders',       value: '5',   color: 'text-violet-400',  glow: 'purple'  },
+  { icon: BookOpen,  label: 'Aktif Ders',       value: '5',   color: 'text-blue-500',  glow: 'purple'  },
   { icon: TrendingUp,label: 'Ortalama Başarı',  value: '%74', color: 'text-emerald-400', glow: 'emerald' },
   { icon: CheckCircle,label:'Tamamlanan Quiz', value: '128', color: 'text-amber-400',   glow: 'amber'   },
 ];
@@ -25,13 +25,13 @@ export default function TeacherDashboard() {
       <div className="space-y-6 max-w-5xl mx-auto">
 
         {/* Welcome Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-900/50 via-blue-900/30 to-violet-900/30 border border-cyan-500/20 p-6">
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl" />
-          <p className="text-slate-400 text-sm">Öğretmen Paneli 🎓</p>
-          <h2 className="font-display font-black text-2xl text-white mt-1">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-50 via-blue-50 to-indigo-50 border border-cyan-200 p-6">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-cyan-300/30 rounded-full blur-3xl" />
+          <p className="text-slate-500 text-sm">Öğretmen Paneli 🎓</p>
+          <h2 className="font-display font-black text-2xl text-slate-900 mt-1">
             Hoş geldin, <span className="text-gradient-cyan">{user?.name?.split(' ')[0]}!</span>
           </h2>
-          <p className="text-slate-400 text-sm mt-2">Bugün 3 öğrenci yeni konuyu tamamladı. 🎉</p>
+          <p className="text-slate-500 text-sm mt-2">Bugün 3 öğrenci yeni konuyu tamamladı. 🎉</p>
           <button
             id="btn-add-lesson"
             className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 shadow-lg shadow-cyan-500/30"
@@ -46,28 +46,28 @@ export default function TeacherDashboard() {
             <Card key={label} glow={glow} hover>
               <Icon size={22} className={color} />
               <p className={`font-display font-black text-2xl mt-2 ${color}`}>{value}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{label}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{label}</p>
             </Card>
           ))}
         </div>
 
         {/* Student List */}
         <Card>
-          <h3 className="font-display font-bold text-lg text-white mb-4">Son Aktif Öğrenciler</h3>
+          <h3 className="font-display font-bold text-lg text-slate-900 mb-4">Son Aktif Öğrenciler</h3>
           <div className="space-y-3">
             {RECENT_STUDENTS.map((s) => (
-              <div key={s.name} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors">
+              <div key={s.name} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 transition-colors">
                 <span className="text-2xl">{s.avatar}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">{s.name}</p>
+                  <p className="text-sm font-semibold text-slate-900 truncate">{s.name}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 h-1.5 bg-white/10 rounded-full max-w-[120px]">
+                    <div className="flex-1 h-1.5 bg-slate-200 rounded-full max-w-[120px]">
                       <div
                         className="progress-bar h-full"
                         style={{ width: `${s.progress}%` }}
                       />
                     </div>
-                    <span className="text-xs text-slate-400">%{s.progress}</span>
+                    <span className="text-xs text-slate-500">%{s.progress}</span>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-amber-400">⚡ {s.xp}</span>
