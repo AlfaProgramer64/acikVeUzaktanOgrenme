@@ -8,13 +8,11 @@ export default {
     extend: {
       colors: {
         brand: {
-          purple:  '#7C3AED',
-          violet:  '#8B5CF6',
-          pink:    '#EC4899',
-          cyan:    '#06B6D4',
-          emerald: '#10B981',
-          amber:   '#F59E0B',
-          rose:    '#F43F5E',
+          primary: '#2563EB',   // blue-600
+          secondary: '#3B82F6', // blue-500
+          accent: '#06B6D4',    // cyan-500
+          indigo: '#4F46E5',    // indigo-600
+          sky: '#0EA5E9',       // sky-500
         },
       },
       fontFamily: {

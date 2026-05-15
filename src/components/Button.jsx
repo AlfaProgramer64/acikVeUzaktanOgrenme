@@ -31,13 +31,13 @@ export default function Button({
 
   const variants = {
     primary:
-      'text-white bg-gradient-to-r from-violet-600 to-pink-500 ' +
-      'shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:-translate-y-0.5',
+      'text-white bg-gradient-to-r from-blue-600 to-cyan-500 ' +
+      'shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5',
     secondary:
-      'text-white bg-white/10 border border-white/15 ' +
-      'hover:bg-white/20 hover:border-white/25',
+      'text-slate-700 bg-white border border-slate-200 ' +
+      'hover:bg-slate-50 hover:border-slate-300',
     ghost:
-      'text-slate-300 hover:text-white hover:bg-white/10',
+      'text-slate-600 hover:text-blue-600 hover:bg-blue-50',
     danger:
       'text-white bg-gradient-to-r from-rose-600 to-red-500 ' +
       'shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 hover:-translate-y-0.5',
