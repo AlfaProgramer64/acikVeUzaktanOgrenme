@@ -1,1 +1,1 @@
-Bu dosya test amacÄ±yla oluÅŸturulmuÅŸtur.
+Selam Vercel! Bu mesaj Windows terminalinden Kadir tarafından gönderildi.
