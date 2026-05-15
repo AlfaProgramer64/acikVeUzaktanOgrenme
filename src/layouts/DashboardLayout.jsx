@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Map, Trophy, Bot, LayoutDashboard, LogOut,
   ChevronLeft, ChevronRight, Star, Zap, Bell, User,
-  BookOpen, BarChart3, Settings, Users,
+  BookOpen, BarChart3, Settings, Users, ShoppingCart, Package
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -23,8 +23,14 @@ const NAV_ITEMS = [
     roles: ['student'],
   },
   {
-    label: 'Başarılar',
+    label: 'Liderlik Tablosu',
     icon: Trophy,
+    href: '/leaderboard',
+    roles: ['student', 'teacher'],
+  },
+  {
+    label: 'Başarılar',
+    icon: Star,
     href: '/student/achievements',
     roles: ['student'],
   },
@@ -32,6 +38,18 @@ const NAV_ITEMS = [
     label: 'AI Asistan',
     icon: Bot,
     href: '/student/ai-assistant',
+    roles: ['student'],
+  },
+  {
+    label: 'Mağaza',
+    icon: ShoppingCart,
+    href: '/student/store',
+    roles: ['student'],
+  },
+  {
+    label: 'Envanterim',
+    icon: Package,
+    href: '/student/inventory',
     roles: ['student'],
   },
   {
@@ -150,7 +168,12 @@ export default function DashboardLayout({ children }) {
                 <span className="text-2xl">{user?.avatar}</span>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-slate-900 truncate">{user?.name}</p>
-                  <p className="text-xs text-slate-500 capitalize">{
+                  {user?.activeBadgeName && (
+                    <p className="text-xs font-bold text-amber-500 truncate mt-0.5">
+                      ({user.activeBadgeName})
+                    </p>
+                  )}
+                  <p className="text-xs text-slate-500 capitalize mt-0.5">{
                     user?.role === 'student' ? 'Öğrenci' :
                     user?.role === 'teacher' ? 'Öğretmen' : 'Admin'
                   }</p>
@@ -198,13 +221,21 @@ export default function DashboardLayout({ children }) {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Header */}
-        <header className="glass border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+        <header className="relative z-40 glass border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
           {/* Left: Greeting */}
           <div>
-            <h1 className="font-display font-black text-xl text-slate-900">
-              Merhaba, <span className="text-gradient">{user?.name?.split(' ')[0]} {user?.avatar}</span>
-            </h1>
-            <p className="text-sm text-slate-500">
+            <div className="flex items-center gap-2">
+              <h1 className="font-display font-black text-xl text-slate-900">
+                Merhaba, <span className="text-gradient">{user?.name?.split(' ')[0]}</span>
+                {user?.activeBadgeName && (
+                  <span className="text-amber-500 font-bold text-lg ml-1">
+                    ({user.activeBadgeName})
+                  </span>
+                )}
+                <span className="ml-2">{user?.avatar}</span>
+              </h1>
+            </div>
+            <p className="text-sm text-slate-500 mt-1">
               {new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
           </div>
