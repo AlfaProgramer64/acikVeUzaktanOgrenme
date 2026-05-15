@@ -36,10 +36,7 @@ export default function LoginPage() {
     setTouched({ email: true, password: true });
     const result = await login(email, password);
     if (result.success) {
-      // Kullanıcı rolünü doğrudan AuthContext'ten almak yerine e-postadan çıkarıyoruz
-      const prefix = email.split('@')[0].toLowerCase();
-      const role = prefix === 'admin' ? 'admin' : prefix === 'ogretmen' ? 'teacher' : 'student';
-      navigate(getRoleRedirect(role), { replace: true });
+      navigate(getRoleRedirect(result.user.role), { replace: true });
     }
   };
 
@@ -97,28 +94,27 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          {/* E-posta */}
+          {/* Kullanıcı Adı */}
           <div className="space-y-1.5">
             <label htmlFor="login-email" className="text-sm font-semibold text-slate-600">
-              E-posta Adresi
+              Kullanıcı Adı
             </label>
             <div className="relative">
-              <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 id="login-email"
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-                placeholder="ornek@eposta.com"
-                autoComplete="email"
-                className="form-input pl-10"
+                placeholder="kullanici_adi"
+                autoComplete="username"
+                className="form-input"
                 required
               />
             </div>
             {touched.email && !email && (
               <p className="text-xs text-rose-400 flex items-center gap-1">
-                <AlertCircle size={11} /> E-posta adresi gerekli
+                <AlertCircle size={11} /> Kullanıcı adı gerekli
               </p>
             )}
           </div>
@@ -129,7 +125,6 @@ export default function LoginPage() {
               Şifre
             </label>
             <div className="relative">
-              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
@@ -138,7 +133,7 @@ export default function LoginPage() {
                 onBlur={() => setTouched((t) => ({ ...t, password: true }))}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="form-input pl-10 pr-11"
+                className="form-input pr-11"
                 required
               />
               <button

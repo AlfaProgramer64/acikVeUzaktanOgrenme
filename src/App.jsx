@@ -5,6 +5,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 // ─── Pages ────────────────────────────────────────────────────────────────────
 import LoginPage        from './pages/LoginPage';
 import StudentDashboard from './pages/StudentDashboard';
+import StudentStore     from './pages/StudentStore';
+import StudentInventory from './pages/StudentInventory';
+import Leaderboard      from './pages/Leaderboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import AdminDashboard   from './pages/AdminDashboard';
 
@@ -58,6 +61,31 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['student']}>
                 <ComingSoon title="AI Asistan" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/store"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentStore />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/inventory"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentInventory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute allowedRoles={['student', 'teacher', 'admin']}>
+                <Leaderboard />
               </ProtectedRoute>
             }
           />

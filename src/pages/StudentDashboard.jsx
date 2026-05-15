@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import { Map, Zap, Clock, ArrowRight, Star, Flame } from 'lucide-react';
 import Card from '../components/Card';
+import DailyRewardModal from '../components/DailyRewardModal';
 
 // ─── Konu Yol Haritası Verisi (statik mock) ───────────────────────────────────
 const TOPICS = [
@@ -27,12 +29,38 @@ const STATS = [
 ];
 
 export default function StudentDashboard() {
-  const { user } = useAuth();
+  const { user, addXP } = useAuth();
+  const [showRewardModal, setShowRewardModal] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const today = new Date().toISOString().split('T')[0];
+    const key = `lastSpinDate_${user.id}`;
+    const lastSpin = localStorage.getItem(key);
+
+    if (lastSpin !== today) {
+      const timer = setTimeout(() => setShowRewardModal(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
+
+  const handleReward = (xp) => {
+    addXP(xp);
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem(`lastSpinDate_${user?.id}`, today);
+  };
+
   const activeIndex = TOPICS.findIndex((t) => t.status === 'active');
 
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-5xl mx-auto">
+        {showRewardModal && (
+          <DailyRewardModal 
+            onClose={() => setShowRewardModal(false)}
+            onReward={handleReward}
+          />
+        )}
 
         {/* Welcome Banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-50 via-sky-50 to-indigo-50 border border-blue-200/50 p-6">

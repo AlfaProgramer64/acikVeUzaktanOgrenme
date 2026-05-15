@@ -11,8 +11,11 @@ const MOCK_USERS = {
     role: 'student',
     level: 3,
     xp: 1250,
-    avatar: '🚀',
+    avatar: '🎒',
     badges: ['first_login', 'quiz_master'],
+    inventory: [],
+    activeBadge: null,
+    activeBadgeName: null,
   },
   'ogretmen@demo.com': {
     id: 'u002',
@@ -23,6 +26,9 @@ const MOCK_USERS = {
     xp: 9800,
     avatar: '🎓',
     badges: [],
+    inventory: [],
+    activeBadge: null,
+    activeBadgeName: null,
   },
   'admin@demo.com': {
     id: 'u003',
@@ -33,6 +39,9 @@ const MOCK_USERS = {
     xp: 99999,
     avatar: '⚙️',
     badges: [],
+    inventory: [],
+    activeBadge: null,
+    activeBadgeName: null,
   },
 };
 
@@ -44,12 +53,64 @@ function inferRoleFromEmail(email) {
   return 'student';
 }
 
+// ─── LocalStorage Persistence Helpers ──────────────────────────────────────────
+const STORAGE_KEY = 'lms_users_db';
+
+function getUsersDB() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (data) {
+      // MOCK_USERS'ı temel alıp, üzerine localStorage'daki güncel/yeni verileri yazıyoruz
+      const parsedData = { ...MOCK_USERS, ...JSON.parse(data) };
+      
+      // Eski kayıtlarda kalan roket ikonunu sırt çantası ile değiştirme (migration)
+      let needsUpdate = false;
+      Object.values(parsedData).forEach(u => {
+        if (u.role === 'student' && u.avatar === '🚀' && !u.inventory?.includes('car_rocket')) {
+          u.avatar = '🎒';
+          needsUpdate = true;
+        }
+      });
+      
+      if (needsUpdate) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedData));
+      }
+      
+      return parsedData;
+    }
+  } catch (e) {
+    console.error('Local storage okuma hatası', e);
+  }
+  return MOCK_USERS;
+}
+
+function saveUserToDB(userObj) {
+  try {
+    const db = getUsersDB();
+    db[userObj.email.toLowerCase()] = userObj;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  } catch (e) {
+    console.error('Local storage yazma hatası', e);
+  }
+}
+
 // ─── Context Definition ────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 
 // ─── AuthProvider Component ────────────────────────────────────────────────────
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const savedEmail = localStorage.getItem('lms_active_user');
+      if (savedEmail) {
+        const db = getUsersDB();
+        return db[savedEmail.toLowerCase()] || null;
+      }
+    } catch (e) {
+      console.error('Session geri yükleme hatası', e);
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
 
@@ -78,30 +139,39 @@ export function AuthProvider({ children }) {
     }
 
     // Kullanıcıyı bul ya da dinamik olarak oluştur
-    const foundUser = MOCK_USERS[email.toLowerCase()];
-    if (foundUser) {
-      setUser(foundUser);
-    } else {
+    const db = getUsersDB();
+    let foundUser = db[email.toLowerCase()];
+    
+    if (!foundUser) {
       // Bilinmeyen kullanıcı → rolü e-postadan çıkar
       const role = inferRoleFromEmail(email);
-      setUser({
+      foundUser = {
         id: `u_${Date.now()}`,
         name: email.split('@')[0],
-        email,
+        email: email.toLowerCase(),
         role,
         level: 1,
         xp: 0,
-        avatar: role === 'teacher' ? '🎓' : role === 'admin' ? '⚙️' : '🚀',
+        avatar: role === 'teacher' ? '🎓' : role === 'admin' ? '⚙️' : '🎒',
         badges: [],
-      });
+        inventory: [],
+        activeBadge: null,
+        activeBadgeName: null,
+      };
+      saveUserToDB(foundUser);
     }
+    
+    // Aktif kullanıcıyı localStorage'a kaydet ki sayfa yenilendiğinde gitmesin
+    localStorage.setItem('lms_active_user', foundUser.email.toLowerCase());
+    setUser(foundUser);
 
     setLoading(false);
-    return { success: true };
+    return { success: true, user: foundUser };
   }, []);
 
   /** Oturumu kapat */
   const logout = useCallback(() => {
+    localStorage.removeItem('lms_active_user');
     setUser(null);
     setError('');
   }, []);
@@ -112,7 +182,65 @@ export function AuthProvider({ children }) {
       if (!prev) return prev;
       const newXP    = prev.xp + amount;
       const newLevel = Math.floor(newXP / 500) + 1;
-      return { ...prev, xp: newXP, level: newLevel };
+      const updatedUser = { ...prev, xp: newXP, level: newLevel };
+      
+      saveUserToDB(updatedUser);
+      return updatedUser;
+    });
+  }, []);
+
+  /** Mağaza işlemleri */
+  const buyItem = useCallback((item) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      if (prev.xp < item.cost) return prev;
+      if (prev.inventory?.includes(item.id)) return prev;
+
+      const newXP = prev.xp - item.cost;
+      const updatedUser = { 
+        ...prev, 
+        xp: newXP, 
+        inventory: [...(prev.inventory || []), item.id]
+      };
+      
+      saveUserToDB(updatedUser);
+      return updatedUser;
+    });
+  }, []);
+
+  const equipItem = useCallback((item) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      if (!prev.inventory?.includes(item.id)) return prev;
+
+      const updatedUser = { ...prev };
+      if (item.type === 'avatar') {
+        updatedUser.avatar = item.icon;
+      } else if (item.type === 'badge') {
+        updatedUser.activeBadge = item.id;
+        updatedUser.activeBadgeName = item.name;
+      }
+      
+      saveUserToDB(updatedUser);
+      return updatedUser;
+    });
+  }, []);
+
+  const unequipItem = useCallback((type) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      
+      const updatedUser = { ...prev };
+      if (type === 'avatar') {
+        // Varsayılan avatara dön
+        updatedUser.avatar = prev.role === 'teacher' ? '🎓' : prev.role === 'admin' ? '⚙️' : '🎒';
+      } else if (type === 'badge') {
+        updatedUser.activeBadge = null;
+        updatedUser.activeBadgeName = null;
+      }
+      
+      saveUserToDB(updatedUser);
+      return updatedUser;
     });
   }, []);
 
@@ -124,6 +252,9 @@ export function AuthProvider({ children }) {
     login,
     logout,
     addXP,
+    buyItem,
+    equipItem,
+    unequipItem,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -136,4 +267,5 @@ export function useAuth() {
   return ctx;
 }
 
+export { getUsersDB };
 export default AuthContext;
