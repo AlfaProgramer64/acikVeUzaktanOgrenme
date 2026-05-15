@@ -36,10 +36,7 @@ export default function LoginPage() {
     setTouched({ email: true, password: true });
     const result = await login(email, password);
     if (result.success) {
-      // Kullanıcı rolünü doğrudan AuthContext'ten almak yerine e-postadan çıkarıyoruz
-      const prefix = email.split('@')[0].toLowerCase();
-      const role = prefix === 'admin' ? 'admin' : prefix === 'ogretmen' ? 'teacher' : 'student';
-      navigate(getRoleRedirect(role), { replace: true });
+      navigate(getRoleRedirect(result.user.role), { replace: true });
     }
   };
 
