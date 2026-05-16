@@ -6,7 +6,7 @@ import Card from '../components/Card';
 import DailyRewardModal from '../components/DailyRewardModal';
 
 import { useNavigate } from 'react-router-dom';
-import { ROADMAP_DATA } from './StudentRoadmap';
+import { useRoadmap } from '../context/RoadmapContext';
 
 // ─── Status renk ve etiket ────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -23,6 +23,7 @@ const STATS = [
 
 export default function StudentDashboard() {
   const { user, addCoins } = useAuth();
+  const { roadmap } = useRoadmap();
   const navigate = useNavigate();
   const [showRewardModal, setShowRewardModal] = useState(false);
 
@@ -44,7 +45,7 @@ export default function StudentDashboard() {
     localStorage.setItem(`lastSpinDate_${user?.id}`, today);
   };
 
-  const currentTopic = ROADMAP_DATA.find((t) => t.status === 'current') || ROADMAP_DATA[0];
+  const currentTopic = roadmap.find((t) => t.status === 'current') || roadmap[0];
 
   return (
     <DashboardLayout>
@@ -104,7 +105,7 @@ export default function StudentDashboard() {
             <Map size={20} className="text-blue-500" />
             <h2 className="font-display font-bold text-lg text-slate-900">Yol Haritası</h2>
             <span className="ml-auto text-xs text-slate-500">
-              {ROADMAP_DATA.filter(t => t.status === 'completed').length}/{ROADMAP_DATA.length} Tamamlandı
+              {roadmap.filter(t => t.status === 'completed').length}/{roadmap.length} Tamamlandı
             </span>
           </div>
 
@@ -112,13 +113,13 @@ export default function StudentDashboard() {
           <div className="h-2 bg-slate-200 rounded-full mb-6 overflow-hidden">
             <div
               className="progress-bar h-full"
-              style={{ width: `${(ROADMAP_DATA.filter(t => t.status === 'completed').length / ROADMAP_DATA.length) * 100}%` }}
+              style={{ width: `${(roadmap.filter(t => t.status === 'completed').length / roadmap.length) * 100}%` }}
             />
           </div>
 
           {/* Topic Cards */}
           <div className="space-y-3">
-            {ROADMAP_DATA.map((topic, idx) => {
+            {roadmap.map((topic, idx) => {
               const status  = STATUS_CONFIG[topic.status];
               const isLocked = topic.status === 'locked';
               const xpValue = 150; // Mock XP

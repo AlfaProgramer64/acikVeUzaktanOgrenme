@@ -10,52 +10,29 @@ import {
   ChevronDown, 
   ChevronUp, 
   Map, 
-  Flag
+  Flag,
+  Video,
+  X
 } from 'lucide-react';
+import { useRoadmap } from '../context/RoadmapContext';
 
-export const ROADMAP_DATA = [
-  {
-    id: 'fb_6_2_1_1',
-    section: '1. Bölüm: Bileşke Kuvvet',
-    title: 'Bileşke Kuvveti Yapılandırma',
-    code: 'FB.6.2.1.1',
-    description: 'Bir cisme etki eden aynı doğrultudaki kuvvetler arasındaki ilişkileri açıklayarak bileşke kuvveti yapılandırabilme',
-    subObjectives: [
-      'Bir cisme etki eden aynı doğrultudaki kuvvetleri inceleyerek aralarındaki mantıksal ilişkileri ortaya koyar.',
-      'Bir cisme etki eden aynı doğrultudaki kuvvetler arasındaki ilişkileri yapılandırarak bileşke kuvveti açıklar.'
-    ],
-    status: 'current', // 'completed', 'current', 'locked'
-  },
-  {
-    id: 'fb_6_2_1_2',
-    section: '1. Bölüm: Bileşke Kuvvet',
-    title: 'Kuvvetlerin Etkisi Deneyi',
-    code: 'FB.6.2.1.2',
-    description: 'Dengelenmiş ve dengelenmemiş kuvvetlerin etkisi altındaki bir cismin hareketine yönelik deney yapabilme',
-    subObjectives: [
-      'Dengelenmiş ve dengelenmemiş kuvvetlerin bir cismin hareketine etkisini gösteren deney düzeneği tasarlar.',
-      'Dengelenmiş ve dengelenmemiş kuvvetlerin bir cismin hareketine etkisini analiz eder.'
-    ],
-    status: 'locked',
-  },
-  {
-    id: 'fb_6_2_2_1',
-    section: '2. Bölüm: Sabit Süratli ve Sabit Hızlı Hareket',
-    title: 'Sürat ve Hız Karşılaştırması',
-    code: 'FB.6.2.2.1',
-    description: 'Sürat ve hız kavramlarını karşılaştırabilme',
-    subObjectives: [
-      'Sürat ve hız kavramlarına ilişkin özellikleri belirler.',
-      'Sürat ve hız kavramlarına ilişkin benzerlikleri listeler.',
-      'Sürat ve hız kavramlarına ilişkin farklılıkları listeler.'
-    ],
-    status: 'locked',
-  },
-];
+// YouTube URL'sini embed formatına çeviren yardımcı fonksiyon
+const getYoutubeEmbedUrl = (url) => {
+  if (!url) return '';
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) 
+    ? `https://www.youtube.com/embed/${match[2]}`
+    : url;
+};
+
+
 
 export default function StudentRoadmap() {
   const { user } = useAuth();
+  const { roadmap } = useRoadmap();
   const [expandedNode, setExpandedNode] = useState('fb_6_2_1_1');
+  const [activeVideo, setActiveVideo] = useState(null); // { title, url }
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -111,7 +88,7 @@ export default function StudentRoadmap() {
 
           {/* Duraklar (Kazanımlar) */}
           <div className="space-y-12 md:space-y-24 relative z-10">
-            {ROADMAP_DATA.map((node, index) => {
+            {roadmap.map((node, index) => {
               const isLeft = index % 2 === 0;
               const isExpanded = expandedNode === node.id;
               
@@ -121,7 +98,12 @@ export default function StudentRoadmap() {
                   {/* Masaüstü için Kart (Sol) */}
                   {isLeft && (
                     <div className="hidden md:flex w-5/12 justify-end pr-12">
-                      <RoadmapCard node={node} isExpanded={isExpanded} onToggle={() => setExpandedNode(isExpanded ? null : node.id)} />
+                      <RoadmapCard 
+                        node={node} 
+                        isExpanded={isExpanded} 
+                        onToggle={() => setExpandedNode(isExpanded ? null : node.id)} 
+                        onPlayVideo={(v) => setActiveVideo(v)}
+                      />
                     </div>
                   )}
 
@@ -149,7 +131,12 @@ export default function StudentRoadmap() {
                   {/* Kart (Sağ ve Mobil) */}
                   {(!isLeft || true) && (
                     <div className={`w-full md:w-5/12 ${isLeft ? 'md:hidden' : 'pl-0 md:pl-12'}`}>
-                      <RoadmapCard node={node} isExpanded={isExpanded} onToggle={() => setExpandedNode(isExpanded ? null : node.id)} />
+                      <RoadmapCard 
+                        node={node} 
+                        isExpanded={isExpanded} 
+                        onToggle={() => setExpandedNode(isExpanded ? null : node.id)} 
+                        onPlayVideo={(v) => setActiveVideo(v)}
+                      />
                     </div>
                   )}
                   
@@ -166,13 +153,54 @@ export default function StudentRoadmap() {
           </div>
 
         </div>
+
+        {/* Video Modal */}
+        {activeVideo && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden relative animate-in zoom-in-95 duration-300">
+              
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <PlayCircle size={24} />
+                  </div>
+                  <h3 className="font-display font-black text-xl text-slate-900">{activeVideo.title}</h3>
+                </div>
+                <button 
+                  onClick={() => setActiveVideo(null)}
+                  className="p-2 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-900 transition-all"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Video Player Container */}
+              <div className="aspect-video bg-black relative">
+                <iframe
+                  className="w-full h-full"
+                  src={`${getYoutubeEmbedUrl(activeVideo.url)}?autoplay=1&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&controls=1`}
+                  title={activeVideo.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 bg-slate-50 text-center">
+                <p className="text-xs text-slate-500 font-medium">Ders videolarını izlerken not almayı unutma! 📝</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
 }
 
 // ─── Yardımcı Bileşen: Kazanım Kartı ──────────────────────────────────────────
-function RoadmapCard({ node, isExpanded, onToggle }) {
+function RoadmapCard({ node, isExpanded, onToggle, onPlayVideo }) {
   const isLocked = node.status === 'locked';
   
   return (
@@ -216,16 +244,38 @@ function RoadmapCard({ node, isExpanded, onToggle }) {
           </ul>
 
           <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Ders İçerikleri</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs hover:bg-blue-100 transition-colors">
-              <PlayCircle size={16} /> Video Anlatım
-            </button>
-            <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-purple-50 text-purple-600 font-bold text-xs hover:bg-purple-100 transition-colors">
-              <Sparkles size={16} /> Etkileşim
-            </button>
-            <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-50 text-emerald-600 font-bold text-xs hover:bg-emerald-100 transition-colors">
-              <PenTool size={16} /> Alıştırma
-            </button>
+          <div className="space-y-3">
+            {/* Videolar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {node.contents?.length > 0 ? (
+                node.contents.map((content, idx) => (
+                  <button 
+                    key={idx} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPlayVideo(content);
+                    }}
+                    className="flex items-center gap-3 py-2.5 px-4 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20"
+                  >
+                    <PlayCircle size={16} /> {content.title}
+                  </button>
+                ))
+              ) : (
+                <button className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-50 text-blue-400 font-bold text-xs cursor-not-allowed border border-blue-100">
+                  <PlayCircle size={16} /> Video Anlatım (Henüz Yok)
+                </button>
+              )}
+            </div>
+
+            {/* Diğer İçerikler */}
+            <div className="grid grid-cols-2 gap-2">
+              <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-purple-50 text-purple-600 font-bold text-xs hover:bg-purple-100 transition-colors border border-purple-100">
+                <Sparkles size={16} /> Etkileşim
+              </button>
+              <button className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-50 text-emerald-600 font-bold text-xs hover:bg-emerald-100 transition-colors border border-emerald-100">
+                <PenTool size={16} /> Alıştırma
+              </button>
+            </div>
           </div>
         </div>
       )}

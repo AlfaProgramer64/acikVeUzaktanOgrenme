@@ -23,6 +23,12 @@ const NAV_ITEMS = [
     roles: ['student'],
   },
   {
+    label: 'Yol Haritası',
+    icon: Map,
+    href: '/teacher/roadmap',
+    roles: ['teacher'],
+  },
+  {
     label: 'Liderlik Tablosu',
     icon: Trophy,
     href: '/leaderboard',

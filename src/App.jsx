@@ -9,8 +9,10 @@ import StudentStore     from './pages/StudentStore';
 import StudentInventory from './pages/StudentInventory';
 import Leaderboard      from './pages/Leaderboard';
 import TeacherDashboard from './pages/TeacherDashboard';
+import TeacherRoadmap   from './pages/TeacherRoadmap';
 import AdminDashboard   from './pages/AdminDashboard';
 import StudentRoadmap   from './pages/StudentRoadmap';
+import { RoadmapProvider } from './context/RoadmapContext';
 
 // ─── Placeholder pages (ilerleyen sprint'lerde geliştirilecek) ────────────────
 function ComingSoon({ title }) {
@@ -28,124 +30,133 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Public */}
-          <Route path="/login" element={<LoginPage />} />
+        <RoadmapProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Student Routes */}
-          <Route
-            path="/student"
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/student/roadmap"
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentRoadmap />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/student/achievements"
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <ComingSoon title="Başarılar" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/student/ai-assistant"
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <ComingSoon title="AI Asistan" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/student/store"
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentStore />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/student/inventory"
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentInventory />
-              </ProtectedRoute>
-            }
-          />
+            {/* Student Routes */}
+            <Route
+              path="/student"
+              element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <StudentDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/roadmap"
+              element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <StudentRoadmap />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/achievements"
+              element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <ComingSoon title="Başarılar" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/ai-assistant"
+              element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <ComingSoon title="AI Asistan" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/store"
+              element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <StudentStore />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/inventory"
+              element={
+                <ProtectedRoute allowedRoles={['student']}>
+                  <StudentInventory />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/leaderboard"
-            element={
-              <ProtectedRoute allowedRoles={['student', 'teacher', 'admin']}>
-                <Leaderboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/leaderboard"
+              element={
+                <ProtectedRoute allowedRoles={['student', 'teacher', 'admin']}>
+                  <Leaderboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Teacher Routes */}
-          <Route
-            path="/teacher"
-            element={
-              <ProtectedRoute allowedRoles={['teacher']}>
-                <TeacherDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher/lessons"
-            element={
-              <ProtectedRoute allowedRoles={['teacher']}>
-                <ComingSoon title="Dersler" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teacher/stats"
-            element={
-              <ProtectedRoute allowedRoles={['teacher']}>
-                <ComingSoon title="İstatistikler" />
-              </ProtectedRoute>
-            }
-          />
+            {/* Teacher Routes */}
+            <Route
+              path="/teacher"
+              element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <TeacherDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/roadmap"
+              element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <TeacherRoadmap />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/lessons"
+              element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <ComingSoon title="Dersler" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/stats"
+              element={
+                <ProtectedRoute allowedRoles={['teacher']}>
+                  <ComingSoon title="İstatistikler" />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Admin Routes */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <ComingSoon title="Kullanıcı Yönetimi" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/settings"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <ComingSoon title="Ayarlar" />
-              </ProtectedRoute>
-            }
-          />
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <ComingSoon title="Kullanıcı Yönetimi" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <ComingSoon title="Ayarlar" />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Catch-all → login */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+            {/* Catch-all → login */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </RoadmapProvider>
       </AuthProvider>
     </BrowserRouter>
   );
