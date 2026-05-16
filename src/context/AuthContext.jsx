@@ -11,7 +11,7 @@ const MOCK_USERS = {
     role: 'student',
     level: 3,
     xp: 1250,
-    points: 1250,
+    coins: 1250,
     avatar: '🎒',
     badges: ['first_login', 'quiz_master'],
     inventory: [],
@@ -25,7 +25,7 @@ const MOCK_USERS = {
     role: 'teacher',
     level: 10,
     xp: 9800,
-    points: 9800,
+    coins: 9800,
     avatar: '🎓',
     badges: [],
     inventory: [],
@@ -39,7 +39,7 @@ const MOCK_USERS = {
     role: 'admin',
     level: 99,
     xp: 99999,
-    points: 99999,
+    coins: 99999,
     avatar: '⚙️',
     badges: [],
     inventory: [],
@@ -85,9 +85,9 @@ function getUsersDB() {
           needsUpdate = true;
         }
         
-        // Eksik points alanı
-        if (u.points === undefined) {
-          u.points = u.xp;
+        // Eksik coins alanı
+        if (u.coins === undefined) {
+          u.coins = u.points !== undefined ? u.points : u.xp;
           needsUpdate = true;
         }
       }
@@ -184,7 +184,7 @@ export function AuthProvider({ children }) {
         role,
         level: 1,
         xp: 0,
-        points: 0,
+        coins: 0,
         avatar: role === 'teacher' ? '🎓' : role === 'admin' ? '⚙️' : '🎒',
         badges: [],
         inventory: [],
@@ -214,10 +214,21 @@ export function AuthProvider({ children }) {
     setUser((prev) => {
       if (!prev) return prev;
       const newXP    = prev.xp + amount;
-      const newPoints = (prev.points !== undefined ? prev.points : prev.xp) + amount;
+      const newCoins = (prev.coins !== undefined ? prev.coins : prev.xp) + amount;
       const newLevel = Math.floor(newXP / 500) + 1;
       const finalLevel = Math.max(prev.level || 1, newLevel);
-      const updatedUser = { ...prev, xp: newXP, points: newPoints, level: finalLevel };
+      const updatedUser = { ...prev, xp: newXP, coins: newCoins, level: finalLevel };
+      
+      saveUserToDB(updatedUser);
+      return updatedUser;
+    });
+  }, []);
+
+  const addCoins = useCallback((amount) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const newCoins = (prev.coins || 0) + amount;
+      const updatedUser = { ...prev, coins: newCoins };
       
       saveUserToDB(updatedUser);
       return updatedUser;
@@ -228,14 +239,14 @@ export function AuthProvider({ children }) {
   const buyItem = useCallback((item) => {
     setUser((prev) => {
       if (!prev) return prev;
-      const currentPoints = prev.points !== undefined ? prev.points : prev.xp;
-      if (currentPoints < item.cost) return prev;
+      const currentCoins = prev.coins !== undefined ? prev.coins : prev.xp;
+      if (currentCoins < item.cost) return prev;
       if (prev.inventory?.includes(item.id)) return prev;
 
-      const newPoints = currentPoints - item.cost;
+      const newCoins = currentCoins - item.cost;
       const updatedUser = { 
         ...prev, 
-        points: newPoints, 
+        coins: newCoins, 
         inventory: [...(prev.inventory || []), item.id]
       };
       
@@ -288,6 +299,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     addXP,
+    addCoins,
     buyItem,
     equipItem,
     unequipItem,

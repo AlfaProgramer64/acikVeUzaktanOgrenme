@@ -49,15 +49,15 @@ export default function StudentStore() {
               <h2 className="font-display font-black text-2xl text-slate-900">Mağaza</h2>
             </div>
             <p className="text-sm text-slate-500">
-              Puanlarınla yeni arabalar ve profil rozetleri alabilirsin.
+              Coinlerinle yeni arabalar ve profil rozetleri alabilirsin.
             </p>
           </div>
           
           <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 px-4 py-2 rounded-xl border border-amber-500/20">
-            <Zap size={20} className="text-amber-500" />
+            <span className="text-xl">🪙</span>
             <div>
-              <p className="text-xs text-amber-600/80 font-bold uppercase tracking-wider">Mevcut Puan</p>
-              <p className="font-black text-xl text-amber-500 leading-none">{user?.points !== undefined ? user.points : (user?.xp || 0)}</p>
+              <p className="text-xs text-amber-600/80 font-bold uppercase tracking-wider">Mevcut Coin</p>
+              <p className="font-black text-xl text-amber-500 leading-none">{user?.coins || 0}</p>
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function StudentStore() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {allAvatars.map((item) => {
               const isOwned = inventory.includes(item.id);
-              const canAfford = (user?.points !== undefined ? user.points : (user?.xp || 0)) >= item.cost;
+              const canAfford = (user?.coins || 0) >= item.cost;
 
               return (
                 <div 
@@ -87,7 +87,7 @@ export default function StudentStore() {
                     </div>
                     {!isOwned && (
                       <div className="flex items-center gap-1 font-bold text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
-                        <Zap size={14} /> {item.cost}
+                        <span className="text-xs">🪙</span> {item.cost}
                       </div>
                     )}
                   </div>
@@ -116,7 +116,7 @@ export default function StudentStore() {
                             : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                         }`}
                       >
-                        {canAfford ? 'Satın Al' : <><Lock size={16} /> Yetersiz Puan</>}
+                        {canAfford ? 'Satın Al' : <><Lock size={16} /> Yetersiz Coin</>}
                       </button>
                     )}
                   </div>
@@ -134,7 +134,7 @@ export default function StudentStore() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {allBadges.map((item) => {
               const isOwned = inventory.includes(item.id);
-              const canAfford = (user?.points !== undefined ? user.points : (user?.xp || 0)) >= item.cost;
+              const canAfford = (user?.coins || 0) >= item.cost;
 
               return (
                 <div key={item.id} className={`flex items-center gap-4 p-4 rounded-2xl border border-slate-200 ${isOwned ? 'bg-slate-50 opacity-60' : 'glass'}`}>
@@ -160,7 +160,7 @@ export default function StudentStore() {
                               : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                           }`}
                         >
-                          <Zap size={12} /> {item.cost} Puan
+                          <span className="text-xs">🪙</span> {item.cost} Coin
                         </button>
                       )}
                     </div>

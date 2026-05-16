@@ -22,7 +22,7 @@ const STATS = [
 ];
 
 export default function StudentDashboard() {
-  const { user, addXP } = useAuth();
+  const { user, addCoins } = useAuth();
   const navigate = useNavigate();
   const [showRewardModal, setShowRewardModal] = useState(false);
 
@@ -38,8 +38,8 @@ export default function StudentDashboard() {
     }
   }, [user]);
 
-  const handleReward = (xp) => {
-    addXP(xp);
+  const handleReward = (coins) => {
+    addCoins(coins);
     const today = new Date().toISOString().split('T')[0];
     localStorage.setItem(`lastSpinDate_${user?.id}`, today);
   };

@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { X, Gift } from 'lucide-react';
 
 const SEGMENTS = [
-  { xp: 100, color: '#3b82f6' }, // blue-500
-  { xp: 10,  color: '#60a5fa' }, // blue-400
-  { xp: 50,  color: '#2563eb' }, // blue-600
-  { xp: 20,  color: '#93c5fd' }, // blue-300
-  { xp: 75,  color: '#1d4ed8' }, // blue-700
-  { xp: 30,  color: '#bfdbfe' }, // blue-200
-  { xp: 60,  color: '#1e40af' }, // blue-800
-  { xp: 40,  color: '#38bdf8' }, // sky-400
+  { coins: 100, color: '#f59e0b' }, // amber-500
+  { coins: 10,  color: '#fbbf24' }, // amber-400
+  { coins: 50,  color: '#d97706' }, // amber-600
+  { coins: 20,  color: '#fcd34d' }, // amber-300
+  { coins: 75,  color: '#b45309' }, // amber-700
+  { coins: 30,  color: '#fde68a' }, // amber-200
+  { coins: 60,  color: '#92400e' }, // amber-800
+  { coins: 40,  color: '#fbbf24' }, // amber-400
 ];
 
 export default function DailyRewardModal({ onClose, onReward }) {
@@ -49,7 +49,7 @@ export default function DailyRewardModal({ onClose, onReward }) {
     // Animasyon süresi 3 saniye
     setTimeout(() => {
       setSpinning(false);
-      setReward(SEGMENTS[targetSegment].xp);
+      setReward(SEGMENTS[targetSegment].coins);
     }, 3000);
   };
 
@@ -78,7 +78,7 @@ export default function DailyRewardModal({ onClose, onReward }) {
             <Gift size={24} />
           </div>
           <h2 className="font-display font-black text-2xl text-slate-900">Günlük Ödül!</h2>
-          <p className="text-sm text-slate-500 mt-1">Bugünkü XP ödülünü kazanmak için çarkı çevir.</p>
+          <p className="text-sm text-slate-500 mt-1">Bugünkü Coin ödülünü kazanmak için çarkı çevir.</p>
         </div>
 
         {/* Çark Konteyner */}
@@ -130,7 +130,7 @@ export default function DailyRewardModal({ onClose, onReward }) {
                   }}
                 >
                   <span style={{ transform: 'translateY(-80px)' }}>
-                    {segment.xp}
+                    {segment.coins}
                   </span>
                 </div>
               );
@@ -147,7 +147,7 @@ export default function DailyRewardModal({ onClose, onReward }) {
         {reward ? (
           <div className="text-center w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
             <p className="text-lg font-bold text-slate-800 mb-4">
-              Tebrikler! <span className="text-blue-600">{reward} XP</span> kazandın.
+              Tebrikler! <span className="text-amber-600">{reward} Coin 🪙</span> kazandın.
             </p>
             <button 
               onClick={handleClaim}

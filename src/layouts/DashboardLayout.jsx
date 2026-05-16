@@ -192,6 +192,14 @@ export default function DashboardLayout({ children }) {
                   />
                 </div>
               </div>
+              {/* Coins Display */}
+              <div className="flex items-center justify-between px-1 py-1 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                <span className="text-[10px] font-bold text-amber-700 uppercase">Bakiyem</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-black text-amber-600">{(user?.coins || 0).toLocaleString('tr-TR')}</span>
+                  <span className="text-[10px]">🪙</span>
+                </div>
+              </div>
               {/* Logout */}
               <button
                 onClick={handleLogout}
@@ -247,10 +255,12 @@ export default function DashboardLayout({ children }) {
               <Star size={15} className="text-amber-400" />
               <span className="text-sm font-bold text-slate-900">Seviye {user?.level}</span>
               <span className="w-px h-4 bg-slate-300" />
-              <Zap size={15} className="text-blue-500" />
-              <span className="text-sm font-bold text-blue-600">
-                {(user?.xp || 0).toLocaleString('tr-TR')} Puan
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-amber-500 text-lg">🪙</span>
+                <span className="text-sm font-bold text-amber-600">
+                  {(user?.coins || 0).toLocaleString('tr-TR')} Coin
+                </span>
+              </div>
             </div>
 
             {/* Notification bell */}
