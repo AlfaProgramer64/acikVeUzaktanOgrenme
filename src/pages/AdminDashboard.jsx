@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
-import { useAuth, getUsersDB } from '../context/AuthContext';
+import { useAuth, getUsersDB, deleteUserDB } from '../context/AuthContext';
 import { Users, Server, ShieldCheck, Activity, Trash2, UserPlus } from 'lucide-react';
 import Card from '../components/Card';
 
@@ -32,6 +32,14 @@ export default function AdminDashboard() {
     if (role === 'teacher') return 'Öğretmen';
     if (role === 'admin') return 'Admin';
     return 'Öğrenci';
+  };
+
+  const handleDeleteUser = (email) => {
+    if (window.confirm("Kullanıcıyı silmek istediğinize emin misiniz?")) {
+      deleteUserDB(email);
+      const db = getUsersDB();
+      setUserList(Object.values(db));
+    }
   };
 
   return (
@@ -90,13 +98,14 @@ export default function AdminDashboard() {
                     {roleLabel}
                   </span>
                   <span className={`w-2 h-2 rounded-full bg-emerald-500`} />
-                <button
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"
-                  title="Kullanıcıyı sil"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+                  <button
+                    onClick={() => handleDeleteUser(u.email)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"
+                    title="Kullanıcıyı sil"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               );
             })}
           </div>

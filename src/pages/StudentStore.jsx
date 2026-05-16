@@ -4,15 +4,27 @@ import { ShoppingCart, Zap, CheckCircle2, Lock } from 'lucide-react';
 
 export const STORE_ITEMS = [
   // Arabalar (Avatarlar)
+  { id: 'car_classic', type: 'avatar', name: 'Kırmızı Klasik', icon: '🚗', cost: 150, desc: 'Başlangıç için ideal, şirin bir klasik.' },
   { id: 'car_taxi', type: 'avatar', name: 'Klasik Taksi', icon: '🚕', cost: 300, desc: 'Şehir içi günlük sürüşler için.' },
   { id: 'car_suv', type: 'avatar', name: 'Arazi Aracı', icon: '🚙', cost: 600, desc: 'Zorlu arazi koşullarında kayıp gitmez.' },
+  { id: 'car_pickup', type: 'avatar', name: 'Kamyonet', icon: '🛻', cost: 900, desc: 'Ağır yükleri taşımak için birebir.' },
   { id: 'car_police', type: 'avatar', name: 'Polis Aracı', icon: '🚓', cost: 1200, desc: 'Hızlı ve güvenli.' },
+  { id: 'car_ambulance', type: 'avatar', name: 'Ambulans', icon: '🚑', cost: 1500, desc: 'Yardıma koşarken herkes sana yol verecek.' },
+  { id: 'car_firetruck', type: 'avatar', name: 'İtfaiye Aracı', icon: '🚒', cost: 1800, desc: 'Zor görevlerin altından başarıyla kalkar.' },
+  { id: 'car_tractor', type: 'avatar', name: 'Traktör', icon: '🚜', cost: 2000, desc: 'Yavaş ama aşamayacağı engel yok!' },
   { id: 'car_race', type: 'avatar', name: 'Yarış Arabası', icon: '🏎️', cost: 2500, desc: 'Pistin tozunu attırmak için yüksek performans.' },
   { id: 'car_rocket', type: 'avatar', name: 'Roket Araba', icon: '🚀', cost: 5000, desc: 'Sürtünmeyi tamamen yok sayan hız!' },
+  { id: 'car_ufo', type: 'avatar', name: 'UFO Uzay Gemisi', icon: '🛸', cost: 10000, desc: 'Gezegenler arası seyahat ve maksimum prestij!' },
   
   // Rozetler
+  { id: 'badge_newbie', type: 'badge', name: 'Yeni Başlayan', icon: '🌱', cost: 100, desc: 'Öğrenme serüvenine atılan ilk adım.' },
   { id: 'badge_speed', type: 'badge', name: 'Hız Tutkunu', icon: '🏁', cost: 400, desc: 'Testleri hızla tamamlayanlar için rozet.' },
   { id: 'badge_mechanic', type: 'badge', name: 'Modifiye Ustası', icon: '🛠️', cost: 800, desc: 'Yanlışlarını düzelten tamirciler için.' },
+  { id: 'badge_brain', type: 'badge', name: 'Dahi Beyin', icon: '🧠', cost: 1200, desc: 'Zor soruları kolayca çözenlere özel.' },
+  { id: 'badge_lab', type: 'badge', name: 'Laboratuvar Ustası', icon: '🧪', cost: 1500, desc: 'Fen deneylerinde uzmanlaşanlar için.' },
+  { id: 'badge_star', type: 'badge', name: 'Yıldız Öğrenci', icon: '⭐', cost: 2000, desc: 'Her zaman en yüksek puanları toplayanlar.' },
+  { id: 'badge_space', type: 'badge', name: 'Uzay Kaşifi', icon: '🌌', cost: 3500, desc: 'Bilinmeyeni keşfetmekten korkmayanlar için.' },
+  { id: 'badge_champion', type: 'badge', name: 'Şampiyon', icon: '🏆', cost: 5000, desc: 'Liderlik tablosunda zirveyi hedefleyenler için.' },
 ];
 
 export default function StudentStore() {
@@ -44,8 +56,8 @@ export default function StudentStore() {
           <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 px-4 py-2 rounded-xl border border-amber-500/20">
             <Zap size={20} className="text-amber-500" />
             <div>
-              <p className="text-xs text-amber-600/80 font-bold uppercase tracking-wider">Mevcut XP</p>
-              <p className="font-black text-xl text-amber-500 leading-none">{user?.xp || 0}</p>
+              <p className="text-xs text-amber-600/80 font-bold uppercase tracking-wider">Mevcut Puan</p>
+              <p className="font-black text-xl text-amber-500 leading-none">{user?.points !== undefined ? user.points : (user?.xp || 0)}</p>
             </div>
           </div>
         </div>
@@ -58,7 +70,7 @@ export default function StudentStore() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {allAvatars.map((item) => {
               const isOwned = inventory.includes(item.id);
-              const canAfford = (user?.xp || 0) >= item.cost;
+              const canAfford = (user?.points !== undefined ? user.points : (user?.xp || 0)) >= item.cost;
 
               return (
                 <div 
@@ -104,7 +116,7 @@ export default function StudentStore() {
                             : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                         }`}
                       >
-                        {canAfford ? 'Satın Al' : <><Lock size={16} /> Yetersiz XP</>}
+                        {canAfford ? 'Satın Al' : <><Lock size={16} /> Yetersiz Puan</>}
                       </button>
                     )}
                   </div>
@@ -122,7 +134,7 @@ export default function StudentStore() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {allBadges.map((item) => {
               const isOwned = inventory.includes(item.id);
-              const canAfford = (user?.xp || 0) >= item.cost;
+              const canAfford = (user?.points !== undefined ? user.points : (user?.xp || 0)) >= item.cost;
 
               return (
                 <div key={item.id} className={`flex items-center gap-4 p-4 rounded-2xl border border-slate-200 ${isOwned ? 'bg-slate-50 opacity-60' : 'glass'}`}>
@@ -148,7 +160,7 @@ export default function StudentStore() {
                               : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                           }`}
                         >
-                          <Zap size={12} /> {item.cost} XP
+                          <Zap size={12} /> {item.cost} Puan
                         </button>
                       )}
                     </div>

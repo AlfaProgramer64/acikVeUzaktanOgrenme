@@ -10,6 +10,7 @@ import StudentInventory from './pages/StudentInventory';
 import Leaderboard      from './pages/Leaderboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import AdminDashboard   from './pages/AdminDashboard';
+import StudentRoadmap   from './pages/StudentRoadmap';
 
 // ─── Placeholder pages (ilerleyen sprint'lerde geliştirilecek) ────────────────
 function ComingSoon({ title }) {
@@ -44,7 +45,7 @@ export default function App() {
             path="/student/roadmap"
             element={
               <ProtectedRoute allowedRoles={['student']}>
-                <ComingSoon title="Yol Haritası" />
+                <StudentRoadmap />
               </ProtectedRoute>
             }
           />

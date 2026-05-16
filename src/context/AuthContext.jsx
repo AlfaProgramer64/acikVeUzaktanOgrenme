@@ -11,6 +11,7 @@ const MOCK_USERS = {
     role: 'student',
     level: 3,
     xp: 1250,
+    points: 1250,
     avatar: '🎒',
     badges: ['first_login', 'quiz_master'],
     inventory: [],
@@ -24,6 +25,7 @@ const MOCK_USERS = {
     role: 'teacher',
     level: 10,
     xp: 9800,
+    points: 9800,
     avatar: '🎓',
     badges: [],
     inventory: [],
@@ -37,6 +39,7 @@ const MOCK_USERS = {
     role: 'admin',
     level: 99,
     xp: 99999,
+    points: 99999,
     avatar: '⚙️',
     badges: [],
     inventory: [],
@@ -58,26 +61,43 @@ const STORAGE_KEY = 'lms_users_db';
 
 function getUsersDB() {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      // MOCK_USERS'ı temel alıp, üzerine localStorage'daki güncel/yeni verileri yazıyoruz
-      const parsedData = { ...MOCK_USERS, ...JSON.parse(data) };
-      
-      // Eski kayıtlarda kalan roket ikonunu sırt çantası ile değiştirme (migration)
-      let needsUpdate = false;
-      Object.values(parsedData).forEach(u => {
+    let data = localStorage.getItem(STORAGE_KEY);
+    if (!data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_USERS));
+      data = JSON.stringify(MOCK_USERS);
+    }
+    
+    const parsedData = JSON.parse(data);
+    
+    // Eski kayıtlarda kalan roket ikonunu sırt çantası ile değiştirme (migration)
+    let needsUpdate = false;
+    Object.values(parsedData).forEach(u => {
+      if (u) {
         if (u.role === 'student' && u.avatar === '🚀' && !u.inventory?.includes('car_rocket')) {
           u.avatar = '🎒';
           needsUpdate = true;
         }
-      });
-      
-      if (needsUpdate) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedData));
+        
+        // XP/Level senkronizasyonu: Önceki alışverişler XP'yi düşürmüş olabilir
+        const minXpForLevel = ((u.level || 1) - 1) * 500;
+        if (u.xp < minXpForLevel) {
+          u.xp = minXpForLevel + (u.xp % 500);
+          needsUpdate = true;
+        }
+        
+        // Eksik points alanı
+        if (u.points === undefined) {
+          u.points = u.xp;
+          needsUpdate = true;
+        }
       }
-      
-      return parsedData;
+    });
+    
+    if (needsUpdate) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedData));
     }
+    
+    return parsedData;
   } catch (e) {
     console.error('Local storage okuma hatası', e);
   }
@@ -91,6 +111,18 @@ function saveUserToDB(userObj) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
   } catch (e) {
     console.error('Local storage yazma hatası', e);
+  }
+}
+
+export function deleteUserDB(email) {
+  try {
+    const db = getUsersDB();
+    if (db[email.toLowerCase()]) {
+      delete db[email.toLowerCase()];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    }
+  } catch (e) {
+    console.error('Local storage silme hatası', e);
   }
 }
 
@@ -152,6 +184,7 @@ export function AuthProvider({ children }) {
         role,
         level: 1,
         xp: 0,
+        points: 0,
         avatar: role === 'teacher' ? '🎓' : role === 'admin' ? '⚙️' : '🎒',
         badges: [],
         inventory: [],
@@ -181,8 +214,10 @@ export function AuthProvider({ children }) {
     setUser((prev) => {
       if (!prev) return prev;
       const newXP    = prev.xp + amount;
+      const newPoints = (prev.points !== undefined ? prev.points : prev.xp) + amount;
       const newLevel = Math.floor(newXP / 500) + 1;
-      const updatedUser = { ...prev, xp: newXP, level: newLevel };
+      const finalLevel = Math.max(prev.level || 1, newLevel);
+      const updatedUser = { ...prev, xp: newXP, points: newPoints, level: finalLevel };
       
       saveUserToDB(updatedUser);
       return updatedUser;
@@ -193,13 +228,14 @@ export function AuthProvider({ children }) {
   const buyItem = useCallback((item) => {
     setUser((prev) => {
       if (!prev) return prev;
-      if (prev.xp < item.cost) return prev;
+      const currentPoints = prev.points !== undefined ? prev.points : prev.xp;
+      if (currentPoints < item.cost) return prev;
       if (prev.inventory?.includes(item.id)) return prev;
 
-      const newXP = prev.xp - item.cost;
+      const newPoints = currentPoints - item.cost;
       const updatedUser = { 
         ...prev, 
-        xp: newXP, 
+        points: newPoints, 
         inventory: [...(prev.inventory || []), item.id]
       };
       
