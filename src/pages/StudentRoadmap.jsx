@@ -24,7 +24,7 @@ export const ROADMAP_DATA = [
       'Bir cisme etki eden aynı doğrultudaki kuvvetleri inceleyerek aralarındaki mantıksal ilişkileri ortaya koyar.',
       'Bir cisme etki eden aynı doğrultudaki kuvvetler arasındaki ilişkileri yapılandırarak bileşke kuvveti açıklar.'
     ],
-    status: 'current' // 'completed', 'current', 'locked'
+    status: 'current', // 'completed', 'current', 'locked'
   },
   {
     id: 'fb_6_2_1_2',
@@ -36,7 +36,7 @@ export const ROADMAP_DATA = [
       'Dengelenmiş ve dengelenmemiş kuvvetlerin bir cismin hareketine etkisini gösteren deney düzeneği tasarlar.',
       'Dengelenmiş ve dengelenmemiş kuvvetlerin bir cismin hareketine etkisini analiz eder.'
     ],
-    status: 'locked'
+    status: 'locked',
   },
   {
     id: 'fb_6_2_2_1',
@@ -49,8 +49,8 @@ export const ROADMAP_DATA = [
       'Sürat ve hız kavramlarına ilişkin benzerlikleri listeler.',
       'Sürat ve hız kavramlarına ilişkin farklılıkları listeler.'
     ],
-    status: 'locked'
-  }
+    status: 'locked',
+  },
 ];
 
 export default function StudentRoadmap() {
