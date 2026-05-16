@@ -243,25 +243,29 @@ function CustomVideoPlayer({ video, onClose }) {
           onClick={togglePlay}
           style={{ aspectRatio: '16/9' }}
         >
-          {/* YouTube iframe — tüm ekranı kaplıyor, UI gizli */}
+          {/* YouTube iframe — tüm ekranı kaplıyor */}
           <div
             ref={playerRef}
             className="absolute inset-0 w-full h-full pointer-events-none"
-            style={{ transform: 'scale(1.02)' }} // kenar çizgilerini gizle
+            style={{ transform: 'scale(1.04)' }}
+          />
+
+          {/* ── YouTube branding / UI tamamen kapatma overlay'i ── */}
+          {/* Bu şeffaf div, iframe'in üzerinde oturur ve YouTube'un
+              kendi logo/kontrol/öneri arayüzüne erişimi tamamen engeller.
+              pointer-events: auto olduğu için click'leri biz yakalıyoruz. */}
+          <div
+            className="absolute inset-0 z-10"
+            style={{ background: 'transparent' }}
+            onClick={togglePlay}
+            onMouseMove={resetHideTimer}
           />
 
           {/* Buffering spinner */}
           {isBuffering && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
               <div className="w-14 h-14 rounded-full border-4 border-blue-500/30 border-t-blue-500 animate-spin" />
             </div>
-          )}
-
-          {/* Ortadaki büyük play/pause ikonu (tıklandığında anlık göster) */}
-          {!isBuffering && (
-            <div
-              className={`absolute inset-0 flex items-center justify-center z-10 pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-0' : 'opacity-0'}`}
-            />
           )}
 
           {/* ── Custom Kontrol Barı ── */}
