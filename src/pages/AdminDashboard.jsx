@@ -97,7 +97,7 @@ export default function AdminDashboard() {
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${ROLE_COLORS[roleLabel] || ''}`}>
                     {roleLabel}
                   </span>
-                  <span className={`w-2 h-2 rounded-full bg-emerald-500`} />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   <button
                     onClick={() => handleDeleteUser(u.email)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"

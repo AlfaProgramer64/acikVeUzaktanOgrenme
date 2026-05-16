@@ -199,7 +199,7 @@ export function AuthProvider({ children }) {
     setUser(foundUser);
 
     setLoading(false);
-    return { success: true };
+    return { success: true, user: foundUser };
   }, []);
 
   /** Oturumu kapat */
