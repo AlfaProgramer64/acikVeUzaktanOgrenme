@@ -124,8 +124,8 @@ export default function DashboardLayout({ children }) {
   const xpInLevel    = (user?.xp || 0) % 500;
   const xpPercent    = Math.round((xpInLevel / 500) * 100);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login', { replace: true });
   };
 
@@ -173,7 +173,7 @@ export default function DashboardLayout({ children }) {
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{user?.avatar}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-slate-900 truncate">{user?.name}</p>
+                  <p className="font-semibold text-sm text-slate-900 truncate">{user?.full_name || user?.username}</p>
                   {user?.activeBadgeName && (
                     <p className="text-xs font-bold text-amber-500 truncate mt-0.5">
                       ({user.activeBadgeName})
@@ -240,7 +240,7 @@ export default function DashboardLayout({ children }) {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-display font-black text-xl text-slate-900">
-                Merhaba, <span className="text-gradient">{user?.name?.split(' ')[0]}</span>
+                Merhaba, <span className="text-gradient">{(user?.full_name || user?.username || '').split(' ')[0]}</span>
                 {user?.activeBadgeName && (
                   <span className="text-amber-500 font-bold text-lg ml-1">
                     ({user.activeBadgeName})

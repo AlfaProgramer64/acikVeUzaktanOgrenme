@@ -1,295 +1,206 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 
-// ─── Mock User Database ────────────────────────────────────────────────────────
-// Backend olmadığı için sahte kullanıcılar burada tanımlıdır.
-// E-posta'ya göre rol belirlenir: admin@ → admin, ogretmen@ → teacher, geri kalan → student
-const MOCK_USERS = {
-  'ogrenci@demo.com': {
-    id: 'u001',
-    name: 'Ahmet Yılmaz',
-    email: 'ogrenci@demo.com',
-    role: 'student',
-    level: 3,
-    xp: 1250,
-    coins: 1250,
-    avatar: '🎒',
-    badges: ['first_login', 'quiz_master'],
-    inventory: [],
-    activeBadge: null,
-    activeBadgeName: null,
-  },
-  'ogretmen@demo.com': {
-    id: 'u002',
-    name: 'Ayşe Kaya',
-    email: 'ogretmen@demo.com',
-    role: 'teacher',
-    level: 10,
-    xp: 9800,
-    coins: 9800,
-    avatar: '🎓',
-    badges: [],
-    inventory: [],
-    activeBadge: null,
-    activeBadgeName: null,
-  },
-  'admin@demo.com': {
-    id: 'u003',
-    name: 'Sistem Yöneticisi',
-    email: 'admin@demo.com',
-    role: 'admin',
-    level: 99,
-    xp: 99999,
-    coins: 99999,
-    avatar: '⚙️',
-    badges: [],
-    inventory: [],
-    activeBadge: null,
-    activeBadgeName: null,
-  },
-};
-
-// ─── Helper: E-postaya göre rol çıkar ─────────────────────────────────────────
-function inferRoleFromEmail(email) {
-  const prefix = email.split('@')[0].toLowerCase();
-  if (prefix === 'admin')     return 'admin';
-  if (prefix === 'ogretmen')  return 'teacher';
-  return 'student';
-}
-
-// ─── LocalStorage Persistence Helpers ──────────────────────────────────────────
-const STORAGE_KEY = 'lms_users_db';
-
-function getUsersDB() {
-  try {
-    let data = localStorage.getItem(STORAGE_KEY);
-    if (!data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_USERS));
-      data = JSON.stringify(MOCK_USERS);
-    }
-    
-    const parsedData = JSON.parse(data);
-    
-    // Eski kayıtlarda kalan roket ikonunu sırt çantası ile değiştirme (migration)
-    let needsUpdate = false;
-    Object.values(parsedData).forEach(u => {
-      if (u) {
-        if (u.role === 'student' && u.avatar === '🚀' && !u.inventory?.includes('car_rocket')) {
-          u.avatar = '🎒';
-          needsUpdate = true;
-        }
-        
-        // XP/Level senkronizasyonu: Önceki alışverişler XP'yi düşürmüş olabilir
-        const minXpForLevel = ((u.level || 1) - 1) * 500;
-        if (u.xp < minXpForLevel) {
-          u.xp = minXpForLevel + (u.xp % 500);
-          needsUpdate = true;
-        }
-        
-        // Eksik coins alanı
-        if (u.coins === undefined) {
-          u.coins = u.points !== undefined ? u.points : u.xp;
-          needsUpdate = true;
-        }
-      }
-    });
-    
-    if (needsUpdate) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedData));
-    }
-    
-    return parsedData;
-  } catch (e) {
-    console.error('Local storage okuma hatası', e);
-  }
-  return MOCK_USERS;
-}
-
-function saveUserToDB(userObj) {
-  try {
-    const db = getUsersDB();
-    db[userObj.email.toLowerCase()] = userObj;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-  } catch (e) {
-    console.error('Local storage yazma hatası', e);
-  }
-}
-
-export function deleteUserDB(email) {
-  try {
-    const db = getUsersDB();
-    if (db[email.toLowerCase()]) {
-      delete db[email.toLowerCase()];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-    }
-  } catch (e) {
-    console.error('Local storage silme hatası', e);
-  }
-}
-
-// ─── Context Definition ────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 
-// ─── AuthProvider Component ────────────────────────────────────────────────────
+// ─── AuthProvider ─────────────────────────────────────────────────────────────
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      const savedEmail = localStorage.getItem('lms_active_user');
-      if (savedEmail) {
-        const db = getUsersDB();
-        return db[savedEmail.toLowerCase()] || null;
-      }
-    } catch (e) {
-      console.error('Session geri yükleme hatası', e);
-    }
-    return null;
-  });
-  const [loading, setLoading] = useState(false);
+  const [user, setUser]       = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
 
-  /**
-   * Mock login: e-posta + şifre alır, MOCK_USERS'dan kullanıcıyı bulur.
-   * Bilinmeyen e-posta için rol tahmini yapıp genel bir kullanıcı oluşturur.
-   * Şifre kontrolü: şimdilik her şifre kabul edilir (minimum 6 karakter).
-   */
-  const login = useCallback(async (email, password) => {
+  // Profili Supabase'den çek
+  const fetchProfile = useCallback(async (userId) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+      
+    if (error) {
+      console.error('Profil yükleme hatası:', error);
+    }
+    if (!data) {
+      console.warn('Bu kullanıcı için profiles tablosunda kayıt bulunamadı:', userId);
+    }
+      
+    if (data) setUser(data);
+    setLoading(false);
+    return data;
+  }, []);
+
+  // Oturum dinle
+  useEffect(() => {
+    const adminSession = localStorage.getItem('adminSession');
+    if (adminSession === 'true') {
+      setUser({ id: 'admin-id', role: 'admin', full_name: 'Sistem Yöneticisi', email: 'admin@local' });
+      setLoading(false);
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) fetchProfile(session.user.id);
+      else setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (localStorage.getItem('adminSession') === 'true') return;
+      if (session) await fetchProfile(session.user.id);
+      else { setUser(null); setLoading(false); }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [fetchProfile]);
+
+  // ─── Giriş (kullanıcı adı + şifre) ────────────────────────────────────────
+  const login = useCallback(async (username, password, isAdminLogin = false) => {
     setLoading(true);
     setError('');
 
-    // Simüle edilmiş ağ gecikmesi (500ms)
-    await new Promise((r) => setTimeout(r, 500));
+    if (isAdminLogin) {
+      if (username === import.meta.env.VITE_ADMIN_USERNAME && password === import.meta.env.VITE_ADMIN_PASSWORD) {
+        localStorage.setItem('adminSession', 'true');
+        setUser({ id: 'admin-id', role: 'admin', full_name: 'Sistem Yöneticisi', email: 'admin@local' });
+        setLoading(false);
+        return { success: true };
+      } else {
+        setError('Kullanıcı adı veya şifre hatalı.');
+        setLoading(false);
+        return { success: false };
+      }
+    }
 
-    // Basit validasyon
-    if (!email || !password) {
-      setError('E-posta ve şifre alanları boş bırakılamaz.');
+    const email = `${username.trim().toLowerCase()}@lms.local`;
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (authError) {
+      setError('Kullanıcı adı veya şifre hatalı.');
       setLoading(false);
       return { success: false };
     }
-    if (password.length < 6) {
-      setError('Şifre en az 6 karakter olmalıdır.');
-      setLoading(false);
-      return { success: false };
+
+    // Rol kontrolü
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', authData.user.id).single();
+    if (profile) {
+      if (profile.role === 'admin') {
+        // Normal girişten admin hesabı varsa güvenlik amaçlı çıkar
+        await supabase.auth.signOut();
+        setError('Kullanıcı adı veya şifre hatalı.');
+        setLoading(false);
+        return { success: false };
+      }
     }
 
-    // Kullanıcıyı bul ya da dinamik olarak oluştur
-    const db = getUsersDB();
-    let foundUser = db[email.toLowerCase()];
-    
-    if (!foundUser) {
-      // Bilinmeyen kullanıcı → rolü e-postadan çıkar
-      const role = inferRoleFromEmail(email);
-      foundUser = {
-        id: `u_${Date.now()}`,
-        name: email.split('@')[0],
-        email: email.toLowerCase(),
-        role,
-        level: 1,
-        xp: 0,
-        coins: 0,
-        avatar: role === 'teacher' ? '🎓' : role === 'admin' ? '⚙️' : '🎒',
-        badges: [],
-        inventory: [],
-        activeBadge: null,
-        activeBadgeName: null,
-      };
-      saveUserToDB(foundUser);
-    }
-    
-    // Aktif kullanıcıyı localStorage'a kaydet ki sayfa yenilendiğinde gitmesin
-    localStorage.setItem('lms_active_user', foundUser.email.toLowerCase());
-    setUser(foundUser);
-
-    setLoading(false);
-    return { success: true, user: foundUser };
+    return { success: true };
   }, []);
 
-  /** Oturumu kapat */
-  const logout = useCallback(() => {
-    localStorage.removeItem('lms_active_user');
+  // ─── Kayıt (sadece öğrenci) ────────────────────────────────────────────────
+  const register = useCallback(async ({ username, fullName, realEmail, className, password }) => {
+    setLoading(true);
+    setError('');
+
+    const fakeEmail = `${username.trim().toLowerCase()}@lms.local`;
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email: fakeEmail,
+      password,
+      options: {
+        data: {
+          username: username.trim().toLowerCase(),
+          full_name: fullName,
+          real_email: realEmail,
+          class_name: className,
+          role: 'student',
+        },
+      },
+    });
+
+    if (signUpError) {
+      if (signUpError.message.includes('already registered')) {
+        setError('Bu kullanıcı adı zaten alınmış.');
+      } else {
+        setError(signUpError.message);
+      }
+      setLoading(false);
+      return { success: false };
+    }
+
+    setLoading(false);
+    return { success: true, data };
+  }, []);
+
+  // ─── Çıkış ────────────────────────────────────────────────────────────────
+  const logout = useCallback(async () => {
+    if (localStorage.getItem('adminSession') === 'true') {
+      localStorage.removeItem('adminSession');
+      setUser(null);
+      setError('');
+      return;
+    }
+    await supabase.auth.signOut();
     setUser(null);
     setError('');
   }, []);
 
-  /** XP güncelleme yardımcısı (ilerleyen aşamalarda kullanılacak) */
-  const addXP = useCallback((amount) => {
-    setUser((prev) => {
-      if (!prev) return prev;
-      const newXP    = prev.xp + amount;
-      const newCoins = (prev.coins !== undefined ? prev.coins : prev.xp) + amount;
-      const newLevel = Math.floor(newXP / 500) + 1;
-      const finalLevel = Math.max(prev.level || 1, newLevel);
-      const updatedUser = { ...prev, xp: newXP, coins: newCoins, level: finalLevel };
-      
-      saveUserToDB(updatedUser);
-      return updatedUser;
-    });
-  }, []);
+  // ─── Profil güncelleme yardımcıları ───────────────────────────────────────
+  const updateProfile = useCallback(async (updates) => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id)
+      .select()
+      .single();
+    if (data) setUser(data);
+  }, [user]);
 
-  const addCoins = useCallback((amount) => {
-    setUser((prev) => {
-      if (!prev) return prev;
-      const newCoins = (prev.coins || 0) + amount;
-      const updatedUser = { ...prev, coins: newCoins };
-      
-      saveUserToDB(updatedUser);
-      return updatedUser;
-    });
-  }, []);
+  const addXP = useCallback(async (amount) => {
+    if (!user) return;
+    const newXP    = (user.xp || 0) + amount;
+    const newCoins = (user.coins || 0) + amount;
+    const newLevel = Math.floor(newXP / 500) + 1;
+    await updateProfile({ xp: newXP, coins: newCoins, level: Math.max(user.level || 1, newLevel) });
+  }, [user, updateProfile]);
 
-  /** Mağaza işlemleri */
-  const buyItem = useCallback((item) => {
-    setUser((prev) => {
-      if (!prev) return prev;
-      const currentCoins = prev.coins !== undefined ? prev.coins : prev.xp;
-      if (currentCoins < item.cost) return prev;
-      if (prev.inventory?.includes(item.id)) return prev;
+  const addCoins = useCallback(async (amount) => {
+    if (!user) return;
+    await updateProfile({ coins: (user.coins || 0) + amount });
+  }, [user, updateProfile]);
 
-      const newCoins = currentCoins - item.cost;
-      const updatedUser = { 
-        ...prev, 
-        coins: newCoins, 
-        inventory: [...(prev.inventory || []), item.id]
-      };
-      
-      saveUserToDB(updatedUser);
-      return updatedUser;
-    });
-  }, []);
+  // ─── Mağaza işlemleri ─────────────────────────────────────────────────────
+  const buyItem = useCallback(async (item) => {
+    if (!user) return false;
+    const currentCoins = user.coins || 0;
+    if (currentCoins < item.cost) return false;
+    const currentInventory = user.inventory || [];
+    if (currentInventory.includes(item.id)) return false;
 
-  const equipItem = useCallback((item) => {
-    setUser((prev) => {
-      if (!prev) return prev;
-      if (!prev.inventory?.includes(item.id)) return prev;
+    const newInventory = [...currentInventory, item.id];
+    const newCoins     = currentCoins - item.cost;
 
-      const updatedUser = { ...prev };
-      if (item.type === 'avatar') {
-        updatedUser.avatar = item.icon;
-      } else if (item.type === 'badge') {
-        updatedUser.activeBadge = item.id;
-        updatedUser.activeBadgeName = item.name;
-      }
-      
-      saveUserToDB(updatedUser);
-      return updatedUser;
-    });
-  }, []);
+    // DB'ye yaz
+    await supabase.from('user_inventory').insert({ user_id: user.id, item_id: item.id });
+    await updateProfile({ coins: newCoins, inventory: newInventory });
+    return true;
+  }, [user, updateProfile]);
 
-  const unequipItem = useCallback((type) => {
-    setUser((prev) => {
-      if (!prev) return prev;
-      
-      const updatedUser = { ...prev };
-      if (type === 'avatar') {
-        // Varsayılan avatara dön
-        updatedUser.avatar = prev.role === 'teacher' ? '🎓' : prev.role === 'admin' ? '⚙️' : '🎒';
-      } else if (type === 'badge') {
-        updatedUser.activeBadge = null;
-        updatedUser.activeBadgeName = null;
-      }
-      
-      saveUserToDB(updatedUser);
-      return updatedUser;
-    });
-  }, []);
+  const equipItem = useCallback(async (item) => {
+    if (!user || !user.inventory?.includes(item.id)) return;
+    if (item.type === 'avatar') {
+      await updateProfile({ avatar: item.icon });
+    } else if (item.type === 'badge') {
+      await updateProfile({ active_badge: item.id, active_badge_name: item.name });
+    }
+  }, [user, updateProfile]);
+
+  const unequipItem = useCallback(async (type) => {
+    if (!user) return;
+    if (type === 'avatar') {
+      const defaultAvatar = user.role === 'teacher' ? '🎓' : user.role === 'admin' ? '⚙️' : '🚗';
+      await updateProfile({ avatar: defaultAvatar });
+    } else if (type === 'badge') {
+      await updateProfile({ active_badge: null, active_badge_name: null });
+    }
+  }, [user, updateProfile]);
 
   const value = {
     user,
@@ -297,6 +208,7 @@ export function AuthProvider({ children }) {
     error,
     isAuthenticated: !!user,
     login,
+    register,
     logout,
     addXP,
     addCoins,
@@ -308,12 +220,10 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// ─── Custom Hook ───────────────────────────────────────────────────────────────
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within an <AuthProvider>');
   return ctx;
 }
 
-export { getUsersDB };
 export default AuthContext;

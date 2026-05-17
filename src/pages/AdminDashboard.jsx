@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
-import { useAuth, getUsersDB, deleteUserDB } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import { Users, Server, ShieldCheck, Activity, Trash2, UserPlus } from 'lucide-react';
 import Card from '../components/Card';
 
@@ -24,8 +25,11 @@ export default function AdminDashboard() {
   const [userList, setUserList] = useState([]);
 
   useEffect(() => {
-    const db = getUsersDB();
-    setUserList(Object.values(db));
+    const fetchUsers = async () => {
+      const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      if (data) setUserList(data);
+    };
+    fetchUsers();
   }, []);
 
   const getRoleLabel = (role) => {
@@ -34,11 +38,10 @@ export default function AdminDashboard() {
     return 'Öğrenci';
   };
 
-  const handleDeleteUser = (email) => {
-    if (window.confirm("Kullanıcıyı silmek istediğinize emin misiniz?")) {
-      deleteUserDB(email);
-      const db = getUsersDB();
-      setUserList(Object.values(db));
+  const handleDeleteUser = async (id) => {
+    if (window.confirm('Kullanıcıyı silmek istediğinize emin misiniz?')) {
+      await supabase.from('profiles').delete().eq('id', id);
+      setUserList((prev) => prev.filter((u) => u.id !== id));
     }
   };
 
@@ -86,20 +89,20 @@ export default function AdminDashboard() {
               const roleLabel = getRoleLabel(u.role);
               return (
                 <div
-                  key={u.email}
+                  key={u.id}
                   className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 transition-colors group"
                 >
                   <span className="text-2xl">{u.avatar}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-900">{u.name}</p>
-                    <p className="text-xs text-slate-500">{u.email} • {u.xp || 0} XP</p>
+                    <p className="text-sm font-semibold text-slate-900">{u.full_name || u.username}</p>
+                    <p className="text-xs text-slate-500">@{u.username} • {u.xp || 0} XP</p>
                   </div>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${ROLE_COLORS[roleLabel] || ''}`}>
                     {roleLabel}
                   </span>
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   <button
-                    onClick={() => handleDeleteUser(u.email)}
+                    onClick={() => handleDeleteUser(u.id)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400"
                     title="Kullanıcıyı sil"
                   >

@@ -1,94 +1,86 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { User, Lock, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import AuthLayout from '../layouts/AuthLayout';
 import { useAuth } from '../context/AuthContext';
 
-// ─── Demo hesap listesi ────────────────────────────────────────────────────────
-const DEMO_ACCOUNTS = [
-  { label: 'Öğrenci Girişi', email: 'ogrenci@demo.com', role: 'student', icon: '🚀', color: 'from-blue-50 to-blue-100', border: 'border-blue-200 text-blue-900' },
-  { label: 'Öğretmen Girişi', email: 'ogretmen@demo.com', role: 'teacher', icon: '🎓', color: 'from-cyan-50 to-cyan-100', border: 'border-cyan-200 text-cyan-900' },
-  { label: 'Admin Girişi', email: 'admin@demo.com', role: 'admin', icon: '⚙️', color: 'from-indigo-50 to-indigo-100', border: 'border-indigo-200 text-indigo-900' },
-];
-
 export default function LoginPage() {
-  const navigate        = useNavigate();
-  const location        = useLocation();
-  const { login, loading, error } = useAuth();
+  const navigate = useNavigate();
+  const { login, loading, error, user } = useAuth();
 
-  const [email, setEmail]             = useState('');
-  const [password, setPassword]       = useState('');
+  const [username, setUsername]         = useState('');
+  const [password, setPassword]         = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [touched, setTouched]         = useState({ email: false, password: false });
+  const [touched, setTouched]           = useState({ username: false, password: false });
 
-  const from = location.state?.from?.pathname || null;
-
-  // Rol bazlı yönlendirme hedefi
+  // Zaten giriş yapılmışsa direkt yönlendir
   const getRoleRedirect = (role) => {
-    if (from) return from;
     if (role === 'admin')   return '/admin';
     if (role === 'teacher') return '/teacher';
     return '/student';
   };
 
+  // Eğer kullanıcı zaten oturum açmışsa dashboard'a gönder
+  if (user) {
+    return <Navigate to={getRoleRedirect(user.role)} replace />;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setTouched({ email: true, password: true });
-    const result = await login(email, password);
+    setTouched({ username: true, password: true });
+    if (!username || !password) return;
+    const result = await login(username, password);
     if (result.success) {
-      navigate(getRoleRedirect(result.user.role), { replace: true });
+      // onAuthStateChange user'ı setleyecek, o zaman yukarıdaki if bloğu devreye girer
     }
   };
 
-  const handleDemoLogin = async (account) => {
-    setEmail(account.email);
-    setPassword('demo123');
-    const result = await login(account.email, 'demo123');
-    if (result.success) {
-      navigate(getRoleRedirect(account.role), { replace: true });
-    }
+  const handleDemoLogin = async (uname, role) => {
+    await login(uname, '123456');
+    // user state güncellenince yukarıdaki redirect if'i devreye girer
   };
+
 
   return (
     <AuthLayout>
       <div className="space-y-6">
+
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 shadow-2xl shadow-violet-500/40 text-3xl mb-2 animate-float">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 shadow-2xl shadow-blue-500/40 text-3xl mb-2 animate-float">
             ⚡
           </div>
-          <h1 className="font-display font-black text-3xl text-gradient">
-            Kuvvet &amp; Hareket
-          </h1>
-          <p className="text-slate-500 text-sm">
-            Öğrenme yolculuğuna devam etmek için giriş yap!
-          </p>
+          <h1 className="font-display font-black text-3xl text-gradient">Kuvvet &amp; Hareket</h1>
+          <p className="text-slate-500 text-sm">Öğrenme yolculuğuna devam etmek için giriş yap!</p>
         </div>
 
-        {/* Demo Hesaplar */}
+        {/* Demo Hesaplar — sadece öğrenci ve öğretmen */}
         <div>
-          <p className="text-xs text-slate-500 mb-2 text-center uppercase tracking-wider font-semibold">
-            Hızlı Demo Girişi
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {DEMO_ACCOUNTS.map((acc) => (
-              <button
-                key={acc.role}
-                onClick={() => handleDemoLogin(acc)}
-                disabled={loading}
-                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border bg-gradient-to-b ${acc.color} ${acc.border} hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-50`}
-              >
-                <span className="text-2xl">{acc.icon}</span>
-                <span className="text-xs font-bold text-slate-900 leading-tight text-center">{acc.label}</span>
-              </button>
-            ))}
+          <p className="text-xs text-slate-500 mb-2 text-center uppercase tracking-wider font-semibold">Hızlı Demo Girişi</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => handleDemoLogin('ahmet', 'student')}
+              disabled={loading}
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl border bg-gradient-to-b from-blue-50 to-blue-100 border-blue-200 hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50"
+            >
+              <span className="text-2xl">🎒</span>
+              <span className="text-xs font-bold text-blue-900">Öğrenci Girişi</span>
+            </button>
+            <button
+              onClick={() => handleDemoLogin('ogretmen1', 'teacher')}
+              disabled={loading}
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl border bg-gradient-to-b from-cyan-50 to-cyan-100 border-cyan-200 hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50"
+            >
+              <span className="text-2xl">🎓</span>
+              <span className="text-xs font-bold text-cyan-900">Öğretmen Girişi</span>
+            </button>
           </div>
         </div>
 
         {/* Divider */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-slate-200" />
-          <span className="text-xs text-slate-500 font-medium">veya manuel giriş</span>
+          <span className="text-xs text-slate-500 font-medium">veya giriş yap</span>
           <div className="flex-1 h-px bg-slate-200" />
         </div>
 
@@ -96,23 +88,24 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {/* Kullanıcı Adı */}
           <div className="space-y-1.5">
-            <label htmlFor="login-email" className="text-sm font-semibold text-slate-600">
+            <label htmlFor="login-username" className="text-sm font-semibold text-slate-600">
               Kullanıcı Adı
             </label>
             <div className="relative">
+              <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
-                id="login-email"
+                id="login-username"
                 type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                onBlur={() => setTouched((t) => ({ ...t, username: true }))}
                 placeholder="kullanici_adi"
                 autoComplete="username"
-                className="form-input"
+                className="form-input pl-10"
                 required
               />
             </div>
-            {touched.email && !email && (
+            {touched.username && !username && (
               <p className="text-xs text-rose-400 flex items-center gap-1">
                 <AlertCircle size={11} /> Kullanıcı adı gerekli
               </p>
@@ -125,6 +118,7 @@ export default function LoginPage() {
               Şifre
             </label>
             <div className="relative">
+              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
@@ -133,25 +127,20 @@ export default function LoginPage() {
                 onBlur={() => setTouched((t) => ({ ...t, password: true }))}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="form-input pr-11"
+                className="form-input pl-10 pr-11"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {touched.password && password.length > 0 && password.length < 6 && (
-              <p className="text-xs text-rose-400 flex items-center gap-1">
-                <AlertCircle size={11} /> Şifre en az 6 karakter olmalı
-              </p>
-            )}
           </div>
 
-          {/* API Error */}
+          {/* Hata */}
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm">
               <AlertCircle size={16} className="shrink-0 mt-0.5" />
@@ -176,16 +165,18 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                <LogIn size={18} />
-                Giriş Yap
+                <LogIn size={18} /> Giriş Yap
               </>
             )}
           </button>
         </form>
 
-        {/* Hint */}
-        <p className="text-center text-xs text-slate-500">
-          Demo şifresi: <span className="text-blue-500 font-bold">demo123</span>
+        {/* Kayıt Ol linki */}
+        <p className="text-center text-sm text-slate-500">
+          Hesabın yok mu?{' '}
+          <Link to="/register" className="text-blue-600 font-bold hover:underline">
+            Kayıt Ol
+          </Link>
         </p>
       </div>
     </AuthLayout>

@@ -4,6 +4,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // ─── Pages ────────────────────────────────────────────────────────────────────
 import LoginPage        from './pages/LoginPage';
+import RegisterPage     from './pages/RegisterPage';
+import AdminLoginPage   from './pages/AdminLoginPage';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentStore     from './pages/StudentStore';
 import StudentInventory from './pages/StudentInventory';
@@ -32,7 +34,10 @@ export default function App() {
       <AuthProvider>
         <RoadmapProvider>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
+            {/* Public */}
+            <Route path="/login"          element={<LoginPage />} />
+            <Route path="/register"       element={<RegisterPage />} />
+            <Route path="/webadmin/login" element={<AdminLoginPage />} />
 
             {/* Student Routes */}
             <Route

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 
-// Varsayılan Yol Haritası Verisi
-const INITIAL_ROADMAP_DATA = [
+const INITIAL_NODES = [
   {
     id: 'fb_6_2_1_1',
     section: '1. Bölüm: Bileşke Kuvvet',
@@ -10,10 +10,10 @@ const INITIAL_ROADMAP_DATA = [
     description: 'Bir cisme etki eden aynı doğrultudaki kuvvetler arasındaki ilişkileri açıklayarak bileşke kuvveti yapılandırabilme',
     subObjectives: [
       'Bir cisme etki eden aynı doğrultudaki kuvvetleri inceleyerek aralarındaki mantıksal ilişkileri ortaya koyar.',
-      'Bir cisme etki eden aynı doğrultudaki kuvvetler arasındaki ilişkileri yapılandırarak bileşke kuvveti açıklar.'
+      'Bir cisme etki eden aynı doğrultudaki kuvvetler arasındaki ilişkileri yapılandırarak bileşke kuvveti açıklar.',
     ],
     status: 'current',
-    contents: [] // { type: 'video', title: '...', url: '...' }
+    contents: [],
   },
   {
     id: 'fb_6_2_1_2',
@@ -23,10 +23,10 @@ const INITIAL_ROADMAP_DATA = [
     description: 'Dengelenmiş ve dengelenmemiş kuvvetlerin etkisi altındaki bir cismin hareketine yönelik deney yapabilme',
     subObjectives: [
       'Dengelenmiş ve dengelenmemiş kuvvetlerin bir cismin hareketine etkisini gösteren deney düzeneği tasarlar.',
-      'Dengelenmiş ve dengelenmemiş kuvvetlerin bir cismin hareketine etkisini analiz eder.'
+      'Dengelenmiş ve dengelenmemiş kuvvetlerin bir cismin hareketine etkisini analiz eder.',
     ],
     status: 'locked',
-    contents: []
+    contents: [],
   },
   {
     id: 'fb_6_2_2_1',
@@ -37,65 +37,88 @@ const INITIAL_ROADMAP_DATA = [
     subObjectives: [
       'Sürat ve hız kavramlarına ilişkin özellikleri belirler.',
       'Sürat ve hız kavramlarına ilişkin benzerlikleri listeler.',
-      'Sürat ve hız kavramlarına ilişkin farklılıkları listeler.'
+      'Sürat ve hız kavramlarına ilişkin farklılıkları listeler.',
     ],
     status: 'locked',
-    contents: []
+    contents: [],
   },
 ];
 
 const RoadmapContext = createContext(null);
 
 export function RoadmapProvider({ children }) {
-  const [roadmap, setRoadmap] = useState(() => {
-    const saved = localStorage.getItem('lms_roadmap_db');
-    return saved ? JSON.parse(saved) : INITIAL_ROADMAP_DATA;
-  });
+  const [roadmap, setRoadmap] = useState(INITIAL_NODES);
 
+  // Supabase'den içerikleri çek ve node'lara ekle
+  const fetchContents = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('roadmap_contents')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) { console.error('Roadmap içerikleri alınamadı:', error); return; }
+
+    // İçerikleri node_id'ye göre grupla
+    const contentMap = {};
+    data.forEach((c) => {
+      if (!contentMap[c.node_id]) contentMap[c.node_id] = [];
+      contentMap[c.node_id].push(c);
+    });
+
+    setRoadmap((prev) =>
+      prev.map((node) => ({ ...node, contents: contentMap[node.id] || [] }))
+    );
+  }, []);
+
+  useEffect(() => { fetchContents(); }, [fetchContents]);
+
+  // Realtime subscription — öğretmen eklediğinde öğrenci anında görür
   useEffect(() => {
-    localStorage.setItem('lms_roadmap_db', JSON.stringify(roadmap));
-  }, [roadmap]);
+    const channel = supabase
+      .channel('roadmap_contents_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'roadmap_contents' }, () => {
+        fetchContents();
+      })
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [fetchContents]);
 
-  const addContentToNode = useCallback((nodeId, content) => {
-    setRoadmap((prev) => 
-      prev.map((node) => 
-        node.id === nodeId 
-          ? { ...node, contents: [...(node.contents || []), content] }
-          : node
-      )
-    );
-  }, []);
+  const addContentToNode = useCallback(async (nodeId, content) => {
+    const { error } = await supabase.from('roadmap_contents').insert({
+      node_id: nodeId,
+      type: content.type || 'video',
+      title: content.title,
+      url: content.url,
+    });
+    if (error) throw error;
+    // Realtime zaten güncelleyecek ama yine de hemen çek
+    await fetchContents();
+  }, [fetchContents]);
 
-  const removeContentFromNode = useCallback((nodeId, contentIndex) => {
-    setRoadmap((prev) => 
-      prev.map((node) => 
-        node.id === nodeId 
-          ? { ...node, contents: node.contents.filter((_, i) => i !== contentIndex) }
-          : node
-      )
-    );
-  }, []);
+  const removeContentFromNode = useCallback(async (nodeId, contentId) => {
+    const { error } = await supabase
+      .from('roadmap_contents')
+      .delete()
+      .eq('id', contentId);
+    if (error) throw error;
+    await fetchContents();
+  }, [fetchContents]);
 
   const updateNodeStatus = useCallback((nodeId, status) => {
-    setRoadmap((prev) => 
-      prev.map((node) => 
-        node.id === nodeId ? { ...node, status } : node
-      )
+    setRoadmap((prev) =>
+      prev.map((node) => (node.id === nodeId ? { ...node, status } : node))
     );
   }, []);
 
-  const value = {
-    roadmap,
-    addContentToNode,
-    removeContentFromNode,
-    updateNodeStatus
-  };
-
-  return <RoadmapContext.Provider value={value}>{children}</RoadmapContext.Provider>;
+  return (
+    <RoadmapContext.Provider value={{ roadmap, addContentToNode, removeContentFromNode, updateNodeStatus }}>
+      {children}
+    </RoadmapContext.Provider>
+  );
 }
 
 export function useRoadmap() {
-  const context = useContext(RoadmapContext);
-  if (!context) throw new Error('useRoadmap must be used within a RoadmapProvider');
-  return context;
+  const ctx = useContext(RoadmapContext);
+  if (!ctx) throw new Error('useRoadmap must be used within a RoadmapProvider');
+  return ctx;
 }
